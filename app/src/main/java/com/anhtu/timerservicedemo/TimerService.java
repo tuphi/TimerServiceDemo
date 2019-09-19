@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -30,6 +31,8 @@ public class TimerService extends Service {
 
     }
 
+    private long currentElapsedTime;
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(LOG_TAG,"onBind");
@@ -40,6 +43,18 @@ public class TimerService extends Service {
     public void onRebind(Intent intent) {
         Log.i(LOG_TAG, "onRebind");
         super.onRebind(intent);
+        // Tạo một đối tượng Intent (Một đối tượng phát sóng).
+        Intent broadcastIntent = new Intent();
+
+        // Sét tên hành động (Action) của Intent này.
+        // Một Intent có thể thực hiện nhiều hành động khác nhau.
+        // (Có thể coi là nhiều nhiệm vụ).
+        broadcastIntent.setAction(TimerService.ACTION_TIMER_STATE);
+        broadcastIntent.putExtra("current_time", (int) currentElapsedTime);
+
+        // Send broadcast
+        // Phát sóng gửi đi.
+        sendBroadcast(broadcastIntent);
     }
 
     @Override
@@ -69,9 +84,13 @@ public class TimerService extends Service {
         Log.i(LOG_TAG, "onCreate");
 
         mCountUpTimer = new CountUpTimer(1000) {
+
             @Override
             public void onTick(long elapsedTime) {
+
                 Log.i(LOG_TAG, "current time: " + elapsedTime);
+
+                currentElapsedTime = elapsedTime;
 
                 // Tạo một đối tượng Intent (Một đối tượng phát sóng).
                 Intent broadcastIntent = new Intent();
@@ -93,6 +112,7 @@ public class TimerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(LOG_TAG, "onStartCommand");
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);

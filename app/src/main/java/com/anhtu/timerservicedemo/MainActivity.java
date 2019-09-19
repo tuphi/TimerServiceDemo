@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, TimerService.class);
         this.bindService(intent, timerServiceConnection, Context.BIND_AUTO_CREATE);
+        binded = true;
 
     }
 
@@ -125,6 +126,9 @@ public class MainActivity extends AppCompatActivity {
     public void onClickStartService(View view) {
         Intent serviceIntent = new Intent(this, TimerService.class);
         ContextCompat.startForegroundService(this, serviceIntent);
+        Intent intent = new Intent(this, TimerService.class);
+        this.bindService(intent, timerServiceConnection, Context.BIND_AUTO_CREATE);
+        binded = true;
     }
 
     public void onClickStart(View view) {
@@ -146,6 +150,12 @@ public class MainActivity extends AppCompatActivity {
     public void onClickStopService(View view) {
         Intent serviceIntent = new Intent(this, TimerService.class);
         stopService(serviceIntent);
+        this.mTimerService.stopTimer();
+        if(binded) {
+            //Hủy ràng buộc kết nối với dịch vụ
+            this.unbindService(timerServiceConnection);
+            binded = false;
+        }
     }
 
 }
