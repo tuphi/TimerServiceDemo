@@ -33,6 +33,8 @@ public class TimerService extends Service {
 
     private long currentElapsedTime;
 
+    private NotificationManager notificationManager;
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(LOG_TAG,"onBind");
@@ -83,6 +85,8 @@ public class TimerService extends Service {
         super.onCreate();
         Log.i(LOG_TAG, "onCreate");
 
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
         mCountUpTimer = new CountUpTimer(1000) {
 
             @Override
@@ -101,6 +105,11 @@ public class TimerService extends Service {
                 broadcastIntent.setAction(TimerService.ACTION_TIMER_STATE);
                 broadcastIntent.putExtra("current_time", (int) elapsedTime);
 
+                notificationBuilder
+                        .setContentText(CountUpTimer.displayTime(elapsedTime/10));
+
+                notificationManager.notify(1, notificationBuilder.build());
+
                 // Send broadcast
                 // Phát sóng gửi đi.
                 sendBroadcast(broadcastIntent);
@@ -117,14 +126,16 @@ public class TimerService extends Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Example Service")
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Timer Service")
                 .setContentText("")
                 .setSmallIcon(R.drawable.ic_child_friendly_black_24dp)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .build()
+                .setOnlyAlertOnce(true)
                 ;
+
+        notification = notificationBuilder.build();
 
         startForeground(1, notification);
         return START_NOT_STICKY;
